@@ -33,11 +33,6 @@ public class Server {
 		}
 		serverThread.stopServer();
 	}
-	
-	public static void main(String[] args) {
-		Server server = new Server();
-		server.startServer();
-	}
 
 	public void close() {
 		if(serverThread != null){
@@ -48,4 +43,8 @@ public class Server {
 		System.exit(0);
 	}
 	
+	public static void main(String[] args) {
+		Server server = new Server();
+		server.startServer();
+	}
 }

@@ -35,7 +35,7 @@ public class ServerThread extends Thread {
 	/**
 	 * 端口
 	 */
-	private int port = 5000;
+	private int port = 8889;
 	
 	/**
 	 * 是否退出循环

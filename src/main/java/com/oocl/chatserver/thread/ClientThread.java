@@ -83,9 +83,11 @@ public class ClientThread extends Thread {
 					continue;
 				}
 			} catch (ClassNotFoundException e) {
-				e.printStackTrace();
+//				e.printStackTrace();
+				flagRun = false;
 			} catch (IOException e) {
-				e.printStackTrace();
+//				e.printStackTrace();
+				flagRun = false;
 			}
 		}
 	}

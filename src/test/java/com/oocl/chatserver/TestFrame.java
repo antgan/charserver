@@ -70,8 +70,8 @@ public class TestFrame extends JFrame implements ActionListener {
 		
 		lab1.setBounds(20,10,50,50);
 		actionTf.setBounds(80, 20, 200, 30);
-		lab2.setBounds(20, 40, 50, 50);
-		fromTf.setBounds(80, 50, 200, 30);
+		lab2.setBounds(20, 50, 50, 50);
+		fromTf.setBounds(80, 60, 200, 30);
 		this.add(lab1);
 		this.add(actionTf);
 		this.add(lab2);
