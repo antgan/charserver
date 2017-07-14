@@ -53,7 +53,6 @@ public class ServerThread extends Thread {
 		try {
 			serverSocket = new ServerSocket(port);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		sendThread = new SendThread(this);

@@ -103,7 +103,11 @@ public class ClientThread extends Thread {
 		}
 		protocol.setTo(to);
 		protocol.setFrom("server");
-		protocol.setMsg(sb.toString().substring(0, sb.length()-1));
+		if(sb.length() == 0){
+			protocol.setMsg("");
+		}else{
+			protocol.setMsg(sb.toString().substring(0, sb.length()-1));
+		}
 		protocol.setTime(new Date().getTime());
 		serverThread.getMessages().add(protocol);
 	}

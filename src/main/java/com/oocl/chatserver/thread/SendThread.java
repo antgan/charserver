@@ -44,28 +44,39 @@ public class SendThread extends Thread{
 				//发送
 				if(message.getAction() == Action.Chat || message.getAction() == Action.Shake || message.getAction() == Action.List){
 					if("all".equals(message.getTo())){
-						send(message, true);
+						send(message, true, true);
 					}else{
-						send(message, false);
+						send(message, false, true);
 					}
-				}else if(message.getAction() == Action.NotifyLogin || message.getAction() == Action.NotifyLogout || message.getAction() == Action.Exit){
-					send(message, true);
+				}else if(message.getAction() == Action.NotifyLogin || message.getAction() == Action.NotifyLogout){
+					send(message, true, false);
 				}
 			}
 			
 		}
 	}
 	
-	
-	private void send(Protocol message, boolean isAll){
-		try {	
+	private void send(Protocol message, boolean isAll, boolean isIncludeSelf){
+		try {
 			//群发
 			if(isAll){
 				Set<String> keySet = serverThread.getClients().keySet();
-				for(String key : keySet){
-					//群发
-					serverThread.getClients().get(key).getOos().writeObject(message);
-					serverThread.getClients().get(key).getOos().flush();
+				if(!isIncludeSelf){
+					String userName = message.getFrom();
+					for(String key : keySet){
+						if(!userName.equals(key)){
+							//群发
+							serverThread.getClients().get(key).getOos().writeObject(message);
+							serverThread.getClients().get(key).getOos().flush();
+						}
+					}
+				}else{
+					for(String key : keySet){
+						//群发
+						serverThread.getClients().get(key).getOos().writeObject(message);
+						serverThread.getClients().get(key).getOos().flush();
+		
+					}
 				}
 			// 单发
 			} else {
