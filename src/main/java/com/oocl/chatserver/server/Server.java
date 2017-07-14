@@ -1,8 +1,8 @@
 package com.oocl.chatserver.server;
 
-import com.oocl.chatserver.protocol.Action;
-import com.oocl.chatserver.protocol.Protocol;
 import com.oocl.chatserver.thread.ServerThread;
+import com.oocl.protocol.Action;
+import com.oocl.protocol.Protocol;
 
 /**
  * 服务器

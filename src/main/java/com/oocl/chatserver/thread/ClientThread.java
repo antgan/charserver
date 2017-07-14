@@ -6,8 +6,8 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.Date;
 
-import com.oocl.chatserver.protocol.Action;
-import com.oocl.chatserver.protocol.Protocol;
+import com.oocl.protocol.Action;
+import com.oocl.protocol.Protocol;
 
 /**
  * 客户线程
@@ -38,17 +38,13 @@ public class ClientThread extends Thread {
 
 	private boolean flagRun = false;
 
-	public ClientThread(Socket socket, ServerThread serverThread) {
+	public ClientThread(Socket socket, ServerThread serverThread, ObjectOutputStream oos, ObjectInputStream ois) {
 		this.clientSocket = socket;
 		this.serverThread = serverThread;
-		try {
-			//阻塞。TODO
-			ois = new ObjectInputStream(clientSocket.getInputStream());
-			oos = new ObjectOutputStream(clientSocket.getOutputStream());
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		this.oos = oos;
+		this.ois = ois;
 	}
+
 
 	/**
 	 * 只负责接收用户输入，并存入全局消息队列Message
@@ -59,39 +55,55 @@ public class ClientThread extends Thread {
 		while (flagRun) {
 			Protocol protocol = null;
 			try {
-				if (ois.available() > 0) {
-					Object o = ois.readObject();
-					if (o != null) {
-						protocol = (Protocol) o;
-						/**
-						 * 如果是登录操作
-						 */
-						if (protocol.getAction() == Action.Login) {
-							String userName = protocol.getFrom();
-							if (userName != null) {
-								if (!serverThread.getClients().contains(userName)) {
-									serverThread.getClients().put(userName, this);
-								}
-							}
-
-							// 构造返回消息
-							Protocol response = new Protocol(Action.Login,
-								 userName, "all", new Date().getTime());
-							synchronized (serverThread.getMessages()) {
-								serverThread.getMessages().add(response);
-							}
-						}
-
+				Object o = ois.readObject();
+				if (o != null) {
+					protocol = (Protocol) o;
+					
+					if (protocol.getAction() == Action.Logout) {
+						String userName = protocol.getFrom();
+						ClientThread ct = serverThread.getClients().get(userName);
+						//移除用户线程列表
+						serverThread.getClients().remove(userName);
+						//关闭线程资源
+						ct.closeClienthread(ct);
+						//通知所有人某某人登出
+						Protocol notify = new Protocol(Action.NotifyLogout, userName, "all", userName+" logout", new Date().getTime());
+						serverThread.getMessages().add(notify);
+						//通知所有人更新在线列表
+						updateOnline(new Protocol(Action.List, "server"), "all");
 					}
+					if(protocol.getAction() == Action.Chat || protocol.getAction() == Action.Shake){
+						serverThread.getMessages().add(protocol);
+					}
+					//用户要求更新在线用户
+					if(protocol.getAction() == Action.List){
+						updateOnline(protocol, protocol.getFrom());
+					}
+				}else{
+					continue;
 				}
 			} catch (ClassNotFoundException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
+	}
+	
+	/**
+	 * 构建更新在线用户的消息
+	 * @param protocol
+	 */
+	private void updateOnline(Protocol protocol,String to){
+		StringBuilder sb = new StringBuilder();
+		for(String userName : serverThread.getClients().keySet()){
+			sb.append(userName+",");
+		}
+		protocol.setTo(to);
+		protocol.setFrom("server");
+		protocol.setMsg(sb.toString().substring(0, sb.length()-1));
+		protocol.setTime(new Date().getTime());
+		serverThread.getMessages().add(protocol);
 	}
 
 	/**
@@ -113,6 +125,7 @@ public class ClientThread extends Thread {
 		} catch (Throwable e) {
 			e.printStackTrace();
 		}
+		
 	}
 
 	public void setFlagRun(boolean b) {

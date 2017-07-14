@@ -3,8 +3,8 @@ package com.oocl.chatserver.thread;
 import java.io.IOException;
 import java.util.Set;
 
-import com.oocl.chatserver.protocol.Action;
-import com.oocl.chatserver.protocol.Protocol;
+import com.oocl.protocol.Action;
+import com.oocl.protocol.Protocol;
 
 
 /**
@@ -32,7 +32,6 @@ public class SendThread extends Thread{
 	 */
 	@Override
 	public void run() {
-		System.out.println("in");
 		while(flagRun){
 			synchronized (serverThread.getMessages()) {
 				if(serverThread.getMessages().isEmpty()){
@@ -41,14 +40,15 @@ public class SendThread extends Thread{
 					message = (Protocol)serverThread.getMessages().firstElement();
 					serverThread.getMessages().removeElement(message);
 				}
-				//如果是聊天事件
-				if(message.getAction() == Action.Chat){
+				
+				//发送
+				if(message.getAction() == Action.Chat || message.getAction() == Action.Shake || message.getAction() == Action.List){
 					if("all".equals(message.getTo())){
 						send(message, true);
 					}else{
 						send(message, false);
 					}
-				}else if(message.getAction() == Action.Login){
+				}else if(message.getAction() == Action.NotifyLogin || message.getAction() == Action.NotifyLogout || message.getAction() == Action.Exit){
 					send(message, true);
 				}
 			}
@@ -65,11 +65,15 @@ public class SendThread extends Thread{
 				for(String key : keySet){
 					//群发
 					serverThread.getClients().get(key).getOos().writeObject(message);
+					serverThread.getClients().get(key).getOos().flush();
 				}
 			// 单发
 			} else {
 				String to = message.getTo();
-				serverThread.getClients().get(to).getOos().writeObject(message);
+				if(serverThread.getClients().containsKey(to)){
+					serverThread.getClients().get(to).getOos().writeObject(message);
+					serverThread.getClients().get(to).getOos().flush();
+				}
 			}
 		} catch (IOException e) {
 			
