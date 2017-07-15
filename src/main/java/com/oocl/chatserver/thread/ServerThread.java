@@ -125,7 +125,7 @@ public class ServerThread extends Thread {
 						}
 					}
 				} catch (IOException e) {
-					e.printStackTrace();
+					System.out.println("用户异常退出");
 				} catch (ClassNotFoundException e) {
 					e.printStackTrace();
 				}
