@@ -183,7 +183,7 @@ public class TestFrame extends JFrame implements ActionListener {
 	}
 	
 	public static void main(String[] args) {
-		new TestFrame("Weir");
+		new TestFrame("Zero");
 	}
 }
 
