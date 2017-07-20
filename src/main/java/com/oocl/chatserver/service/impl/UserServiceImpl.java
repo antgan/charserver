@@ -1,5 +1,7 @@
 package com.oocl.chatserver.service.impl;
 
+import java.util.List;
+
 import com.oocl.chatserver.dao.UserDao;
 import com.oocl.chatserver.dao.impl.UserDaoImpl;
 import com.oocl.chatserver.pojo.User;
@@ -32,6 +34,10 @@ public class UserServiceImpl implements UserService {
 			return true;
 		}
 		return false;
+	}
+	
+	public List<User> queryAllUsers(){
+		return userDao.queryAllUser();
 	}
 
 }

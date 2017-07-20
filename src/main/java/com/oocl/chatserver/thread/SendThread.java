@@ -18,11 +18,15 @@ public class SendThread extends Thread{
 	 * 服务器线程
 	 */
 	private ServerThread serverThread;
+	/**
+	 * 结束标志
+	 */
 	private boolean flagRun = false;
 	/**
 	 * 请求
 	 */
 	private Protocol message;
+	
 	public SendThread(ServerThread serverThread){
 		this.serverThread = serverThread;
 	}
@@ -50,6 +54,9 @@ public class SendThread extends Thread{
 					}
 				}else if(message.getAction() == Action.NotifyLogin || message.getAction() == Action.NotifyLogout){
 					send(message, true, false);
+				}else if(message.getAction() == Action.Exit){
+					send(message, true, true);
+					this.flagRun = false;
 				}
 			}
 			

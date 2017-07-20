@@ -6,6 +6,7 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
+import com.oocl.chatserver.util.ServerConfig;
 import com.oocl.protocol.Action;
 import com.oocl.protocol.Protocol;
 
@@ -15,8 +16,6 @@ import com.oocl.protocol.Protocol;
  *
  */
 public class TokenThread extends Thread{
-	private static final String HOST_URL = "127.0.0.1";
-	private static final int PORT = 8887;
 	private Socket socket;
 	private ObjectInputStream ois;
 	private ObjectOutputStream oos;
@@ -26,7 +25,8 @@ public class TokenThread extends Thread{
 	
 	public TokenThread(ServerThread serverThread) {
 		try {
-			socket = new Socket(HOST_URL, PORT);
+			socket = new Socket(ServerConfig.getInstance().LOGIN_SERVER_HOST, 
+					Integer.parseInt(ServerConfig.getInstance().LOGIN_SERVER_PORT));
 			oos = new ObjectOutputStream(socket.getOutputStream());
 			ois = new ObjectInputStream(socket.getInputStream());
 			
@@ -74,7 +74,7 @@ public class TokenThread extends Thread{
 			} catch (ClassNotFoundException e) {
 				flagRun = false;
 			} catch (IOException e) {
-				e.printStackTrace();
+				flagRun = false;
 			}
 		}
 	}

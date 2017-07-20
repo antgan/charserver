@@ -11,6 +11,7 @@ import java.util.Hashtable;
 
 import com.oocl.chatserver.service.UserService;
 import com.oocl.chatserver.service.impl.UserServiceImpl;
+import com.oocl.chatserver.util.ServerConfig;
 import com.oocl.chatserver.util.StringUtil;
 import com.oocl.protocol.Action;
 import com.oocl.protocol.Protocol;
@@ -31,7 +32,7 @@ public class LoginServerThread extends Thread {
 	 * 接收令牌的socket
 	 */
 	private Socket tokenSocket;
-
+	
 	private ObjectOutputStream tokenOos;
 
 	/**
@@ -39,11 +40,6 @@ public class LoginServerThread extends Thread {
 	 */
 	private Hashtable<String, String> tokens;
 	
-	/**
-	 * 端口
-	 */
-	private int port = 8887;
-
 	/**
 	 * 是否退出循环
 	 */
@@ -53,10 +49,11 @@ public class LoginServerThread extends Thread {
 
 	public LoginServerThread() {
 		try {
-			serverSocket = new ServerSocket(port);
+			serverSocket = new ServerSocket(Integer.parseInt(ServerConfig.getInstance().LOGIN_SERVER_PORT));
 			userService = new UserServiceImpl();
 			tokens = new Hashtable<String, String>();
-			System.out.println("[LoginServerThread start]");
+			System.out.println("[LoginServerThread start]Host:"+ServerConfig.getInstance().LOGIN_SERVER_HOST
+					+" Port:"+ServerConfig.getInstance().LOGIN_SERVER_PORT);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -139,6 +136,8 @@ public class LoginServerThread extends Thread {
 	public void stopServer() {
 		try {
 			if (this.isAlive()) {
+				tokenOos.close();
+				tokenSocket.close();
 				serverSocket.close();
 				setFlagRun(false);
 			}

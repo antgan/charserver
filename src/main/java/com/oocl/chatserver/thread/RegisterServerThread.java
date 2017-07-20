@@ -9,6 +9,7 @@ import java.net.SocketException;
 
 import com.oocl.chatserver.service.UserService;
 import com.oocl.chatserver.service.impl.UserServiceImpl;
+import com.oocl.chatserver.util.ServerConfig;
 import com.oocl.protocol.Action;
 import com.oocl.protocol.Protocol;
 
@@ -25,22 +26,21 @@ public class RegisterServerThread extends Thread {
 	private ServerSocket serverSocket;
 
 	/**
-	 * 端口
-	 */
-	private int port = 8888;
-
-	/**
 	 * 是否退出循环
 	 */
 	private boolean flagRun = false;
 
+	/**
+	 * 用户业务处理
+	 */
 	private UserService userService;
 
 	public RegisterServerThread() {
 		try {
-			serverSocket = new ServerSocket(port);
+			serverSocket = new ServerSocket(Integer.parseInt(ServerConfig.getInstance().REGISTER_SERVER_PORT));
 			userService = new UserServiceImpl();
-			System.out.println("[RegisterServerThread start]");
+			System.out.println("[RegisterServerThread start]Host:"+ServerConfig.getInstance().REGISTER_SERVER_HOST
+					+" Port:"+ServerConfig.getInstance().REGISTER_SERVER_PORT);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

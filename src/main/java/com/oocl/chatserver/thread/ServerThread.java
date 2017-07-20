@@ -12,6 +12,7 @@ import java.util.Vector;
 
 import com.oocl.chatserver.service.UserService;
 import com.oocl.chatserver.service.impl.UserServiceImpl;
+import com.oocl.chatserver.util.ServerConfig;
 import com.oocl.protocol.Action;
 import com.oocl.protocol.Protocol;
 
@@ -41,10 +42,6 @@ public class ServerThread extends Thread {
 	 * 登录令牌
 	 */
 	private Hashtable<String, String> tokens;
-	/**
-	 * 端口
-	 */
-	private int port = 8889;
 
 	/**
 	 * 是否退出循环
@@ -61,18 +58,15 @@ public class ServerThread extends Thread {
 	 */
 	private TokenThread tokenThread;
 
-	/**
-	 * 用户业务处理
-	 */
-	private UserService userService;
 
 	public ServerThread() {
 		clients = new Hashtable<String, ClientThread>();
 		tokens = new Hashtable<String, String>();
 		messages = new Vector<Protocol>();
 		try {
-			serverSocket = new ServerSocket(port);
-			System.out.println("[ServerThread start]");
+			serverSocket = new ServerSocket(Integer.parseInt(ServerConfig.getInstance().CHAT_SERVER_PORT));
+			System.out.println("[ServerThread start]Host:"+ServerConfig.getInstance().CHAT_SERVER_HOST
+					+" Port:"+ServerConfig.getInstance().CHAT_SERVER_PORT);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -86,13 +80,11 @@ public class ServerThread extends Thread {
 		tokenThread.setFlagRun(true);
 		tokenThread.start();
 		System.out.println("[TokenThread start]");
-		// 业务处理
-		userService = new UserServiceImpl();
 
 	}
 
 	/**
-	 * 根据Token 登录
+	 * 根据Token 登录 TODO..接收HttpServer的结束指令。
 	 */
 	@Override
 	public void run() {
@@ -167,6 +159,8 @@ public class ServerThread extends Thread {
 	public void stopServer() {
 		try {
 			if (this.isAlive()) {
+				tokenThread.setFlagRun(false);
+				sendThread.setFlagRun(false);
 				serverSocket.close();
 				setFlagRun(false);
 			}
