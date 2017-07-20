@@ -10,6 +10,8 @@ import java.util.Date;
 import java.util.Hashtable;
 import java.util.Vector;
 
+import com.oocl.chatserver.service.UserService;
+import com.oocl.chatserver.service.impl.UserServiceImpl;
 import com.oocl.protocol.Action;
 import com.oocl.protocol.Protocol;
 
@@ -47,21 +49,30 @@ public class ServerThread extends Thread {
 	 */
 	private SendThread sendThread;
 	
+	/**
+	 * 用户业务处理
+	 */
+	private UserService userService;
+	
 	public ServerThread() {
 		clients = new Hashtable<String, ClientThread>();
 		messages = new Vector<Protocol>();
 		try {
 			serverSocket = new ServerSocket(port);
+			System.out.println("[ServerThread start]");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 		sendThread = new SendThread(this);
 		sendThread.setFlagRun(true);
 		sendThread.start();
+		
+		userService = new UserServiceImpl();
+		System.out.println("[SendThread start]");
 	}
 	
 	/**
-	 * 只管用户clients的存储
+	 * 校验登录
 	 */
 	@Override
 	public void run() {
@@ -77,28 +88,24 @@ public class ServerThread extends Thread {
 							socket = null;
 							flagRun = false;
 						}
-						//检查是否存在用户
+						// 处理登录
 						if(socket != null){
 							ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
 							ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
 							Object o = ois.readObject();
 							if(o != null){
-								Protocol p = (Protocol)o;
+								Protocol p = Protocol.fromJson((String)o);
 								if(p!=null){
 									String userName = p.getFrom();
+									String pwd = p.getPwd();
 									Protocol response = null;
-									//如果已经存在,返回登录失败。如果不存在，创建线程
-									if(clients.containsKey(userName)){
-										System.out.println(userName+ "已经存在");
-										response = new Protocol(Action.Login, "server", userName, "exist", new Date().getTime());
-										oos.writeObject(response);
-										oos.flush();
-									}else{
+									
+									if(userService.login(userName, pwd)){
 										//构造成功返回
 										response = new Protocol(Action.Login, "server", userName, "success", new Date().getTime());
-										oos.writeObject(response);
+										oos.writeObject(response.toJson());
 										oos.flush();
-										System.out.println(userName+ "登录成功");	
+										
 										//构造通知所有人的登录消息
 										Protocol notify = new Protocol(Action.NotifyLogin, userName, "all", userName + " online……", new Date().getTime());
 										//建立线程
@@ -117,8 +124,12 @@ public class ServerThread extends Thread {
 											messages.addElement(notify);
 											messages.addElement(notifyUpdateOnline);
 										}
-										
 										clientThread.start();//启动客户端线程处理用户输入
+									}else{
+										//密码错误
+										response = new Protocol(Action.Login, "server", userName, "failure", new Date().getTime());
+										oos.writeObject(response.toJson());
+										oos.flush();
 									}
 								}
 							}

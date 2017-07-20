@@ -57,7 +57,7 @@ public class ClientThread extends Thread {
 			try {
 				Object o = ois.readObject();
 				if (o != null) {
-					protocol = (Protocol) o;
+					protocol = Protocol.fromJson((String)o);
 					
 					if (protocol.getAction() == Action.Logout) {
 						String userName = protocol.getFrom();

@@ -66,14 +66,14 @@ public class SendThread extends Thread{
 					for(String key : keySet){
 						if(!userName.equals(key)){
 							//群发
-							serverThread.getClients().get(key).getOos().writeObject(message);
+							serverThread.getClients().get(key).getOos().writeObject(message.toJson());
 							serverThread.getClients().get(key).getOos().flush();
 						}
 					}
 				}else{
 					for(String key : keySet){
 						//群发
-						serverThread.getClients().get(key).getOos().writeObject(message);
+						serverThread.getClients().get(key).getOos().writeObject(message.toJson());
 						serverThread.getClients().get(key).getOos().flush();
 		
 					}
@@ -82,7 +82,7 @@ public class SendThread extends Thread{
 			} else {
 				String to = message.getTo();
 				if(serverThread.getClients().containsKey(to)){
-					serverThread.getClients().get(to).getOos().writeObject(message);
+					serverThread.getClients().get(to).getOos().writeObject(message.toJson());
 					serverThread.getClients().get(to).getOos().flush();
 				}
 			}

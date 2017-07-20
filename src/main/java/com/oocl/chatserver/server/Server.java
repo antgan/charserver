@@ -1,5 +1,6 @@
 package com.oocl.chatserver.server;
 
+import com.oocl.chatserver.thread.RegisterServerThread;
 import com.oocl.chatserver.thread.ServerThread;
 import com.oocl.protocol.Action;
 import com.oocl.protocol.Protocol;
@@ -12,18 +13,22 @@ import com.oocl.protocol.Protocol;
 public class Server {
 
 	private ServerThread serverThread;
+	private RegisterServerThread registerServerThread;
 
 	public Server(){}
 
 	public void startServer() {
 		try{
 			this.serverThread = new ServerThread();
+			this.registerServerThread = new RegisterServerThread();
 		}catch(Exception e){
 			System.exit(0);
 		}
 		serverThread.setFlagRun(true);
 		serverThread.start();
-		System.out.println("服务器已开启……等待用户连接……");
+		registerServerThread.setFlagRun(true);
+		registerServerThread.start();
+
 	}
 
 	public void stopServer(){
