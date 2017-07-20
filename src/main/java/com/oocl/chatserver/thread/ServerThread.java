@@ -15,47 +15,60 @@ import com.oocl.chatserver.service.impl.UserServiceImpl;
 import com.oocl.protocol.Action;
 import com.oocl.protocol.Protocol;
 
-
 /**
  * 服务器线程
+ * 
  * @author GANAB
- *
+ * 
  */
 public class ServerThread extends Thread {
 	/**
 	 * 服务器Socket
 	 */
 	private ServerSocket serverSocket;
+
 	/**
 	 * 客户列表<userName, ClientThread>
 	 */
 	private Hashtable<String, ClientThread> clients;
+
 	/**
 	 * 任务队列
 	 */
 	private Vector<Protocol> messages;
+
+	/**
+	 * 登录令牌
+	 */
+	private Hashtable<String, String> tokens;
 	/**
 	 * 端口
 	 */
 	private int port = 8889;
-	
+
 	/**
 	 * 是否退出循环
 	 */
 	private boolean flagRun = false;
-	
+
 	/**
 	 * 发送消息线程
 	 */
 	private SendThread sendThread;
-	
+
+	/**
+	 * 令牌消息线程
+	 */
+	private TokenThread tokenThread;
+
 	/**
 	 * 用户业务处理
 	 */
 	private UserService userService;
-	
+
 	public ServerThread() {
 		clients = new Hashtable<String, ClientThread>();
+		tokens = new Hashtable<String, String>();
 		messages = new Vector<Protocol>();
 		try {
 			serverSocket = new ServerSocket(port);
@@ -63,71 +76,78 @@ public class ServerThread extends Thread {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		// 开启统一发送线程
 		sendThread = new SendThread(this);
 		sendThread.setFlagRun(true);
 		sendThread.start();
-		
-		userService = new UserServiceImpl();
 		System.out.println("[SendThread start]");
+		// 开启令牌线程
+		tokenThread = new TokenThread(this);
+		tokenThread.setFlagRun(true);
+		tokenThread.start();
+		System.out.println("[TokenThread start]");
+		// 业务处理
+		userService = new UserServiceImpl();
+
 	}
-	
+
 	/**
-	 * 校验登录
+	 * 根据Token 登录
 	 */
 	@Override
 	public void run() {
 		Socket socket;
-		while(flagRun){
-				try {
-					if(serverSocket.isClosed()){
+		while (flagRun) {
+			try {
+				if (serverSocket.isClosed()) {
+					flagRun = false;
+				} else {
+					try {
+						socket = serverSocket.accept();
+					} catch (SocketException e) {
+						socket = null;
 						flagRun = false;
-					}else{
-						try{
-							socket = serverSocket.accept();
-						}catch(SocketException e){
-							socket = null;
-							flagRun = false;
-						}
-						// 处理登录
-						if(socket != null){
-							ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
-							ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
-							Object o = ois.readObject();
-							if(o != null){
-								Protocol p = Protocol.fromJson((String)o);
-								if(p!=null){
+					}
+					// 根据Token 处理登录
+					if (socket != null) {
+						ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
+						ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
+						Object o = ois.readObject();
+						if (o != null) {
+							Protocol p = Protocol.fromJson((String) o);
+							if (p != null) {
+								if (p.getAction() == Action.Login) {
 									String userName = p.getFrom();
-									String pwd = p.getPwd();
+									String token = p.getMsg();
 									Protocol response = null;
-									
-									if(userService.login(userName, pwd)){
-										//构造成功返回
-										response = new Protocol(Action.Login, "server", userName, "success", new Date().getTime());
+									if (checkToken(userName, token)) {
+										// 构造成功返回
+										response = new Protocol(Action.Login,"Server", userName, "success", new Date().getTime());
 										oos.writeObject(response.toJson());
 										oos.flush();
-										
-										//构造通知所有人的登录消息
-										Protocol notify = new Protocol(Action.NotifyLogin, userName, "all", userName + " online……", new Date().getTime());
-										//建立线程
-										ClientThread clientThread = new ClientThread(socket, this,oos,ois);
+
+										// 构造通知所有人的登录消息
+										Protocol notify = new Protocol(Action.NotifyLogin, userName,"all", userName + " online……", new Date().getTime());
+										// 建立线程
+										ClientThread clientThread = new ClientThread(socket, this, oos, ois);
 										clientThread.setFlagRun(true);
-										clients.put(userName, clientThread);//添加用户线程
-										
-										//构造通知所有人更新在线人数
-										Protocol notifyUpdateOnline = new Protocol(Action.List, "server", "all", new Date().getTime());
+										clients.put(userName, clientThread);// 添加用户线程
+
+										// 构造通知所有人更新在线人数
+										Protocol notifyUpdateOnline = new Protocol(Action.List, "server", "all",new Date().getTime());
 										StringBuilder sb = new StringBuilder();
-										for(String s : clients.keySet()){
-											sb.append(s+",");
+										for (String s : clients.keySet()) {
+											sb.append(s + ",");
 										}
-										notifyUpdateOnline.setMsg(sb.toString().substring(0, sb.length()-1));
+										notifyUpdateOnline.setMsg(sb.toString().substring(0, sb.length() - 1));
+										clientThread.start();// 启动客户端线程处理用户输入
 										synchronized (messages) {
 											messages.addElement(notify);
 											messages.addElement(notifyUpdateOnline);
 										}
-										clientThread.start();//启动客户端线程处理用户输入
-									}else{
-										//密码错误
-										response = new Protocol(Action.Login, "server", userName, "failure", new Date().getTime());
+									} else {
+										// 无效token
+										response = new Protocol(Action.Login,"Server", userName, "failure",new Date().getTime());
 										oos.writeObject(response.toJson());
 										oos.flush();
 									}
@@ -135,23 +155,39 @@ public class ServerThread extends Thread {
 							}
 						}
 					}
-				} catch (IOException e) {
-					System.out.println("用户异常退出");
-				} catch (ClassNotFoundException e) {
-					e.printStackTrace();
 				}
+			} catch (IOException e) {
+				System.out.println("用户异常退出");
+			} catch (ClassNotFoundException e) {
+				e.printStackTrace();
+			}
 		}
 	}
-	
+
 	public void stopServer() {
 		try {
-			if(this.isAlive()){
+			if (this.isAlive()) {
 				serverSocket.close();
 				setFlagRun(false);
 			}
-		} catch (Throwable e) {}
+		} catch (Throwable e) {
+		}
 	}
 
+	/**
+	 * 校验token
+	 * 
+	 * @param userName
+	 * @param token
+	 * @return
+	 */
+	private boolean checkToken(String userName, String token) {
+		String tokenFromMap = tokens.get(userName);
+		if (token.equals(tokenFromMap)) {
+			return true;
+		}
+		return false;
+	}
 
 	public Hashtable<String, ClientThread> getClients() {
 		return clients;
@@ -169,6 +205,8 @@ public class ServerThread extends Thread {
 		this.flagRun = flagRun;
 	}
 
+	public Hashtable<String, String> getTokens() {
+		return tokens;
+	}
 
-	
 }

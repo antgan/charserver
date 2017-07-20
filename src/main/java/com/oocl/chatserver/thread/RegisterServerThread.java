@@ -35,6 +35,7 @@ public class RegisterServerThread extends Thread {
 	private boolean flagRun = false;
 
 	private UserService userService;
+
 	public RegisterServerThread() {
 		try {
 			serverSocket = new ServerSocket(port);

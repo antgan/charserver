@@ -1,5 +1,6 @@
 package com.oocl.chatserver.server;
 
+import com.oocl.chatserver.thread.LoginServerThread;
 import com.oocl.chatserver.thread.RegisterServerThread;
 import com.oocl.chatserver.thread.ServerThread;
 import com.oocl.protocol.Action;
@@ -12,23 +13,34 @@ import com.oocl.protocol.Protocol;
  */
 public class Server {
 
+	/**
+	 * 服务器线程
+	 */
 	private ServerThread serverThread;
+	/**
+	 * 注册中心
+	 */
 	private RegisterServerThread registerServerThread;
 
+	/**
+	 * 登录中心
+	 */
+	private LoginServerThread loginServerThread;
+	
 	public Server(){}
 
 	public void startServer() {
-		try{
-			this.serverThread = new ServerThread();
-			this.registerServerThread = new RegisterServerThread();
-		}catch(Exception e){
-			System.exit(0);
-		}
-		serverThread.setFlagRun(true);
-		serverThread.start();
+		this.registerServerThread = new RegisterServerThread();
 		registerServerThread.setFlagRun(true);
 		registerServerThread.start();
-
+		
+		this.loginServerThread = new LoginServerThread();
+		loginServerThread.setFlagRun(true);
+		loginServerThread.start();
+		
+		this.serverThread = new ServerThread();
+		serverThread.setFlagRun(true);
+		serverThread.start();
 	}
 
 	public void stopServer(){
