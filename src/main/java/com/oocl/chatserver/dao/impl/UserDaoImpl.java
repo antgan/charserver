@@ -64,7 +64,7 @@ public class UserDaoImpl implements UserDao {
 	}
 
 	public List<User> queryAllUser() {
-		Connection conn = DBHelper.getConnectionWithDs();
+		Connection conn = DBHelper.getConnection();
 		List<User> list = new ArrayList<User>();
 		User user = null;
 		String sql = "select * from users";

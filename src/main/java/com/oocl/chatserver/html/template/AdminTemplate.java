@@ -49,9 +49,11 @@ public class AdminTemplate {
 		Element h1Tag = new Element("h1").setText(title);
 		Element span1Tag = new Element("span").setText("服务器启动时间： "+startTime);
 		Element span2Tag = new Element("span").setText("服务器运行时间："+runningTime);
+		Element br1Tag = new Element("br");
 		Element button1Tag = new Element("button").addContent(new Element("a").setAttribute("href",action1).setText("Start"));
 		Element button2Tag = new Element("button").addContent(new Element("a").setAttribute("href",action2).setText("Stop"));
-		Element brTag = new Element("br");
+		Element button3Tag = new Element("button").addContent(new Element("a").setAttribute("href","/admin").setText("Refresh"));
+		Element br2Tag = new Element("br");
 		
 		//Online
 		Element onlineDiv = new Element("div").setAttribute("id","online").setAttribute("style","display:inline-block;width: 200px; height: 300px; overflow: scroll;");
@@ -85,9 +87,11 @@ public class AdminTemplate {
 		divTag.addContent(h1Tag);
 		divTag.addContent(span1Tag);
 		divTag.addContent(span2Tag);
+		divTag.addContent(br1Tag);
 		divTag.addContent(button1Tag);
 		divTag.addContent(button2Tag);
-		divTag.addContent(brTag);
+		divTag.addContent(button3Tag);
+		divTag.addContent(br2Tag);
 		divTag.addContent(onlineDiv);
 		divTag.addContent(registerDiv);
 		divTag.addContent(tokenDiv);
