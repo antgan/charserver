@@ -6,6 +6,7 @@ import java.io.OutputStream;
 import java.net.Socket;
 
 import com.oocl.chatserver.http.request.HttpRequest;
+import com.oocl.chatserver.http.service.AdminService;
 import com.oocl.chatserver.http.service.impl.AdminServiceImpl;
 import com.oocl.chatserver.server.Server;
 import com.oocl.chatserver.util.ParserUtil;
@@ -20,13 +21,17 @@ public class HttpServerWorkThread extends Thread {
 	private Socket socket;
 	private InputStream in;
 	private OutputStream out;
-	private AdminServiceImpl adminService;
+	private ChatThread chatThread;
+	private AdminService adminService;
+	private HttpServerThread httpThread;
 
-	public HttpServerWorkThread(Socket socket, Server server) throws IOException {
+	public HttpServerWorkThread(HttpServerThread httpThread, ChatThread chatThread, Socket socket) throws IOException {
 		this.socket = socket;
+		this.chatThread = chatThread;
+		this.httpThread = httpThread;
 		in = socket.getInputStream();
 		out = socket.getOutputStream();
-		adminService = new AdminServiceImpl(server);
+		this.adminService = new AdminServiceImpl(chatThread);
 	}
 
 	@Override
@@ -39,9 +44,21 @@ public class HttpServerWorkThread extends Thread {
 				adminService.outputHtml(out);;
 			}else if("/admin".equals(req.getPath()) && req.getParams().size() > 0){
 				if("start".equals(req.getParams().get("action"))){
-					adminService.start();
+					if(chatThread==null){
+						chatThread = new ChatThread(new Server());
+						httpThread.setChatThread(chatThread);
+						chatThread.setFlagRun(true);
+						chatThread.start();
+						
+					}
+					adminService.setChatThread(chatThread);
+					adminService.outputHtml(out);;
 				}else if("stop".equals(req.getParams().get("action"))){
-					adminService.stop();
+					if(chatThread!=null){
+						chatThread.stopThread();
+						httpThread.setChatThread(null);
+					}
+					adminService.outputHtml(out);;
 				}
 			}
 		}

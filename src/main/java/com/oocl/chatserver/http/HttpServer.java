@@ -1,7 +1,6 @@
 package com.oocl.chatserver.http;
 
 import com.oocl.chatserver.http.thread.HttpServerThread;
-import com.oocl.chatserver.server.Server;
 
 /**
  * Http server
@@ -9,17 +8,19 @@ import com.oocl.chatserver.server.Server;
  *
  */
 public class HttpServer {
-	private Server server;
-	
 	private HttpServerThread httpServerThread;
 	
-	public HttpServer(Server server) {
-		this.server = server;
-	}
+	public HttpServer() {}
 	
 	public void startServer(){
-		httpServerThread = new HttpServerThread(server);
+		httpServerThread = new HttpServerThread();
 		httpServerThread.setFlagRun(true);
 		httpServerThread.start();
+	}
+	
+	public static void main(String[] args) {
+		HttpServer httpServer = new HttpServer();
+		httpServer.startServer();
+		System.out.println("[Http server start]");
 	}
 }

@@ -49,8 +49,8 @@ public class AdminTemplate {
 		Element h1Tag = new Element("h1").setText(title);
 		Element span1Tag = new Element("span").setText("服务器启动时间： "+startTime);
 		Element span2Tag = new Element("span").setText("服务器运行时间："+runningTime);
-		Element button1Tag = new Element("button").addContent(new Element("a").setAttribute("href",action1).setAttribute("target","_blank").setText("Start"));
-		Element button2Tag = new Element("button").addContent(new Element("a").setAttribute("href",action2).setAttribute("target","_blank").setText("Stop"));
+		Element button1Tag = new Element("button").addContent(new Element("a").setAttribute("href",action1).setText("Start"));
+		Element button2Tag = new Element("button").addContent(new Element("a").setAttribute("href",action2).setText("Stop"));
 		Element brTag = new Element("br");
 		
 		//Online

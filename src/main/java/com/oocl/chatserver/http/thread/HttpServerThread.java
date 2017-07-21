@@ -4,30 +4,27 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-import com.oocl.chatserver.server.Server;
+import com.oocl.chatserver.util.ServerConfig;
 /**
  * service Monitor
  * @author HEZE2
  *
  */
 public class HttpServerThread extends Thread{
-	private Server server;
 	private ServerSocket httpServer;
 	
 	private boolean flagRun = false;
+
+	private ChatThread chatThread;
 	/**
 	 * not good,using constructor(ServerSocket serverSocket) is better
 	 */
-	public HttpServerThread(Server server) {
-		this.server = server;
+	public HttpServerThread(){ 
 		try {
-			httpServer = new ServerSocket(9000);
+			httpServer = new ServerSocket(Integer.parseInt(ServerConfig.getInstance().HTTP_SERVER_PORT));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-	}
-	public HttpServerThread(ServerSocket serverSocket) {
-		this.httpServer = serverSocket;
 	}
 	
 	@Override
@@ -35,7 +32,7 @@ public class HttpServerThread extends Thread{
 		try {
 			while(flagRun){
 				Socket socket = httpServer.accept();
-				HttpServerWorkThread workThread = new HttpServerWorkThread(socket, server);
+				HttpServerWorkThread workThread = new HttpServerWorkThread(this, chatThread, socket);
 				workThread.start();
 			}
 		} catch (IOException e) {
@@ -45,6 +42,14 @@ public class HttpServerThread extends Thread{
 
 	public void setFlagRun(boolean flagRun) {
 		this.flagRun = flagRun;
+	}
+
+	public ChatThread getChatThread() {
+		return chatThread;
+	}
+
+	public void setChatThread(ChatThread chatThread) {
+		this.chatThread = chatThread;
 	}
 	
 	

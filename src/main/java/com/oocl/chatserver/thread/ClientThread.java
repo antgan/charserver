@@ -65,7 +65,7 @@ public class ClientThread extends Thread {
 						//移除用户线程列表
 						serverThread.getClients().remove(userName);
 						//关闭线程资源
-						ct.closeClienthread(ct);
+						ct.closeClienthread();
 						//通知所有人某某人登出
 						Protocol notify = new Protocol(Action.NotifyLogout, userName, "all", userName+" logout", new Date().getTime());
 						serverThread.getMessages().add(notify);
@@ -117,10 +117,10 @@ public class ClientThread extends Thread {
 	 * 
 	 * @param clientThread
 	 */
-	public void closeClienthread(ClientThread clientThread) {
-		if (clientThread.clientSocket != null) {
+	public void closeClienthread() {
+		if (this.clientSocket != null) {
 			try {
-				clientThread.clientSocket.close();
+				this.clientSocket.close();
 			} catch (IOException e) {
 				System.out.println("server's clientSocket is null");
 			}

@@ -1,42 +1,48 @@
 package com.oocl.chatserver.http.service.impl;
 
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
 
 import com.oocl.chatserver.html.template.AdminTemplate;
 import com.oocl.chatserver.html.template.TemplateParameter;
 import com.oocl.chatserver.http.service.AdminService;
-import com.oocl.chatserver.server.Server;
+import com.oocl.chatserver.http.thread.ChatThread;
 
 
 public class AdminServiceImpl implements AdminService{
-	private Server server;
+	private ChatThread chatThread;
 	private AdminTemplate adminTemplate;
 	
-	public AdminServiceImpl(Server server) {
+	public AdminServiceImpl(ChatThread chatThread) {
 		adminTemplate = new AdminTemplate();
-		this.server = server;
-	}
-	
-	public void start(){
-		System.out.println("Action start");
-		server.startServer();
-	}
-	
-	public void stop(){
-		System.out.println("Action stop");
-		server.stopServer();
+		this.chatThread = chatThread;
 	}
 	
 	public void outputHtml(OutputStream out){
-		TemplateParameter param = new TemplateParameter();
-		param.setTitile("WTIP Admin server");
-		param.setStartTime(server.getStartTime());
-		param.setRunningTime(server.getRunningTime());
-		param.setStartAction("/admin?action=start");
-		param.setStopAction("/admin?action=stop");
-		param.setOnlines(server.getOnlines());
-		param.setRegisters(server.getRegisters());
-		param.setTokens(server.getTokens());
-		adminTemplate.build(out, param);
+		TemplateParameter param = new TemplateParameter();	
+			if(chatThread!=null && chatThread.server!=null){
+				param.setStartTime(chatThread.server.getStartTime());
+				param.setRunningTime(chatThread.server.getRunningTime());
+				param.setOnlines(chatThread.server.getOnlines());
+				param.setRegisters(chatThread.server.getRegisters());
+				param.setTokens(chatThread.server.getTokens());
+			}else{
+				param.setStartTime("");
+				param.setRunningTime("");
+				param.setOnlines(new ArrayList<String>());
+				param.setRegisters(new ArrayList<String>());
+				param.setTokens(new HashMap<String, String>());
+			}
+			param.setTitile("WTIP Admin server");
+			param.setStartAction("/admin?action=start");
+			param.setStopAction("/admin?action=stop");
+			adminTemplate.build(out, param);
+		
 	}
+
+	public void setChatThread(ChatThread chatThread) {
+		this.chatThread = chatThread;
+	}
+	
 }

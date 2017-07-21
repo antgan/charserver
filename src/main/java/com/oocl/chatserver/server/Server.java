@@ -1,11 +1,11 @@
 package com.oocl.chatserver.server;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.oocl.chatserver.http.HttpServer;
 import com.oocl.chatserver.pojo.User;
 import com.oocl.chatserver.service.UserService;
 import com.oocl.chatserver.service.impl.UserServiceImpl;
@@ -13,18 +13,16 @@ import com.oocl.chatserver.thread.LoginServerThread;
 import com.oocl.chatserver.thread.RegisterServerThread;
 import com.oocl.chatserver.thread.ServerThread;
 import com.oocl.chatserver.util.StringUtil;
-import com.oocl.protocol.Action;
-import com.oocl.protocol.Protocol;
 
 /**
- * 服务器 
+ * 服务集群
  * @author GANAB
  *
  */
 public class Server {
 
 	/**
-	 * 服务器线程
+	 * 聊天服务器
 	 */
 	private ServerThread serverThread;
 	/**
@@ -43,17 +41,16 @@ public class Server {
 	
 	public Server(){
 		userService = new UserServiceImpl();
+		startTime = System.currentTimeMillis();
 	}
 
 	public void startServer() {
 		this.registerServerThread = new RegisterServerThread();
 		registerServerThread.setFlagRun(true);
 		registerServerThread.start();
-		
 		this.loginServerThread = new LoginServerThread();
 		loginServerThread.setFlagRun(true);
 		loginServerThread.start();
-		
 		this.serverThread = new ServerThread();
 		serverThread.setFlagRun(true);
 		serverThread.start();
@@ -61,14 +58,9 @@ public class Server {
 	}
 
 	public void stopServer(){
-//		synchronized (serverThread.getMessages()) {
-//			Protocol response = new Protocol(Action.Exit, "server");
-//			serverThread.getMessages().add(response);
-//		}
-		
+		serverThread.stopServer();
 		registerServerThread.stopServer();
 		loginServerThread.stopServer();
-		serverThread.stopServer();
 	}
 
 	public void close() {
@@ -82,10 +74,13 @@ public class Server {
 	
 	public List<String> getOnlines(){
 		List<String> onlines = new ArrayList<String>();
-		Set<String> keys = serverThread.getClients().keySet();
-		for(String key : keys){
-			onlines.add(key);
+		if(serverThread!=null){
+			Set<String> keys = serverThread.getClients().keySet();
+			for(String key : keys){
+				onlines.add(key);
+			}
 		}
+
 		return onlines;
 	}
 	
@@ -99,7 +94,10 @@ public class Server {
 	}
 	
 	public Map<String,String> getTokens(){
-		return serverThread.getTokens();
+		if(serverThread!=null){
+			return serverThread.getTokens();
+		}
+		return new HashMap<String, String>();
 	}
 	
 	public String getStartTime(){
@@ -116,17 +114,8 @@ public class Server {
 	public static void main(String[] args) throws Exception{
 		Server server = new Server();
 		server.startServer();
-		System.out.println("启动");
 		Thread.sleep(10000);
 		server.stopServer();
-		System.out.println("关");
-		Thread.sleep(10000);
-		server.startServer();
-		System.out.println("qidon");
-		
-//		HttpServer httpServer = new HttpServer(server);
-//		httpServer.startServer();
-		
 	}
 	
 	

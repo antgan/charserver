@@ -8,10 +8,9 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.util.Date;
 import java.util.Hashtable;
+import java.util.Set;
 import java.util.Vector;
 
-import com.oocl.chatserver.service.UserService;
-import com.oocl.chatserver.service.impl.UserServiceImpl;
 import com.oocl.chatserver.util.ServerConfig;
 import com.oocl.protocol.Action;
 import com.oocl.protocol.Protocol;
@@ -161,6 +160,10 @@ public class ServerThread extends Thread {
 			if (this.isAlive()) {
 				tokenThread.setFlagRun(false);
 				sendThread.setFlagRun(false);
+				Set<String> keys = clients.keySet();
+				for(String key:keys){
+					clients.get(key).closeClienthread();
+				}
 				serverSocket.close();
 				setFlagRun(false);
 			}

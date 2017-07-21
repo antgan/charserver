@@ -22,26 +22,29 @@ public class ParserUtil {
 		try {
 			BufferedReader reader=new BufferedReader(new InputStreamReader(in));
 			String line =reader.readLine();
-			String[] lineSplit = line.split(" ");
-			String method = lineSplit[0];
-			String pathAndParam = lineSplit[1];
-			String[] ppSplit = pathAndParam.split("\\?");
-			String path = null;
-			String param = null;
-			Map<String,String> params = new HashMap<String,String>();
-			//如果没有?
-			if(ppSplit.length == 1){
-				path = ppSplit[0];
-			}else{
-				path = ppSplit[0];
-				param = ppSplit[1];
-				String[] pps = param.split("=");
-				params.put(pps[0], pps[1]);
-			}	
-			request.setMethod(method);
-			request.setPath(path);
-			request.setParams(params);
-		
+			if(line!=null){
+				String[] lineSplit = line.split(" ");
+				
+				String method = lineSplit[0];
+				String pathAndParam = lineSplit[1];
+				String[] ppSplit = pathAndParam.split("\\?");
+				String path = null;
+				String param = null;
+				Map<String,String> params = new HashMap<String,String>();
+				//如果没有?
+				if(ppSplit.length == 1){
+					path = ppSplit[0];
+				}else{
+					path = ppSplit[0];
+					param = ppSplit[1];
+					String[] pps = param.split("=");
+					params.put(pps[0], pps[1]);
+				}	
+				request.setMethod(method);
+				request.setPath(path);
+				request.setParams(params);
+			}
+
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
