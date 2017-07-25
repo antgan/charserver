@@ -17,7 +17,7 @@ import org.apache.commons.dbcp.BasicDataSource;
 public class DBHelper {
 	private static final String driverClass = "oracle.jdbc.OracleDriver";
 	private static final String driverUrl = "jdbc:oracle:thin:@ita-031-w7:1521:xe";
-	private static final String username = "abel";
+	private static final String username = "user";
 	private static final String password = "123";
 	private static BasicDataSource ds = null;
 
